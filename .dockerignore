@@ -18,3 +18,8 @@ supabase
 scripts
 Thumbs.db
 .DS_Store
+portfolio
+.playwright-mcp
+*.png
+docs
+tsconfig.tsbuildinfo
