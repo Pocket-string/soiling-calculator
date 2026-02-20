@@ -6,8 +6,8 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # --- Dependencies ---
 FROM base AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --frozen-lockfile 2>/dev/null || pnpm install
+COPY package.json pnpm-lock.yaml ./
+RUN echo "=== STARTING PNPM INSTALL ===" &&     pnpm install --frozen-lockfile &&     echo "=== PNPM INSTALL COMPLETE ==="
 
 # --- Build ---
 FROM base AS builder
@@ -25,7 +25,7 @@ ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN pnpm run build
+RUN echo "=== STARTING NEXT BUILD ===" &&     pnpm run build &&     echo "=== NEXT BUILD COMPLETE ==="
 
 # --- Runner ---
 FROM base AS runner
