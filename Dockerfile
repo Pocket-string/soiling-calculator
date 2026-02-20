@@ -1,13 +1,13 @@
 FROM node:20-alpine AS base
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 # --- Dependencies ---
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN echo "=== STARTING PNPM INSTALL ===" &&     pnpm install --frozen-lockfile &&     echo "=== PNPM INSTALL COMPLETE ==="
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # --- Build ---
 FROM base AS builder
@@ -24,11 +24,12 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--max-old-space-size=384"
 
-RUN echo "=== STARTING NEXT BUILD ===" &&     pnpm run build &&     echo "=== NEXT BUILD COMPLETE ==="
+RUN npx next build
 
 # --- Runner ---
-FROM base AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
