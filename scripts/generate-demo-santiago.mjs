@@ -103,9 +103,18 @@ const defs = [
   ["2026-01-30", 7.0, 28, false, 9.4],
 ];
 
+// --- Helper: days between two YYYY-MM-DD strings ---
+function daysDiff(a, b) {
+  const da = new Date(a + "T00:00:00Z");
+  const db = new Date(b + "T00:00:00Z");
+  return Math.round((db - da) / 86_400_000);
+}
+
 // --- Generate readings ---
 let prBaseline = null;
 let cumulativeLossEur = 0;
+let lastReadingDate = null;
+let lastLossEur = 0;
 const readings = [];
 
 for (let i = 0; i < defs.length; i++) {
@@ -118,6 +127,8 @@ for (let i = 0; i < defs.length; i++) {
   if (isCleaning) {
     prBaseline = cleanPR;
     cumulativeLossEur = 0;
+    lastReadingDate = null;
+    lastLossEur = 0;
   }
 
   const prCurrent = isCleaning ? cleanPR : prBaseline * (1 - soilingPct / 100);
@@ -127,11 +138,23 @@ for (let i = 0; i < defs.length; i++) {
   const lossEur = kwhLoss * PLANT.energy_price_eur;
   const soiling = isCleaning ? 0 : soilingPct;
 
+  // Trapezoidal interpolation: estimate losses for days between readings
+  if (lastReadingDate) {
+    const gapDays = daysDiff(lastReadingDate, date) - 1;
+    if (gapDays > 0) {
+      cumulativeLossEur += gapDays * (lastLossEur + lossEur) / 2;
+    }
+  }
   cumulativeLossEur += lossEur;
+  lastReadingDate = date;
+  lastLossEur = lossEur;
 
   // Cleaning recommendation (same thresholds as soilingCalculator.ts)
   const dailyLossEur = kwh_theoretical * (soiling / 100) * PLANT.energy_price_eur;
-  const daysBreakeven = dailyLossEur > 0 ? Math.ceil(PLANT.cleaning_cost_eur / dailyLossEur) : 9999;
+  const remaining = PLANT.cleaning_cost_eur - cumulativeLossEur;
+  const daysBreakeven = remaining <= 0
+    ? 0
+    : dailyLossEur > 0 ? Math.ceil(remaining / dailyLossEur) : 9999;
 
   let rec;
   if (soiling > 15 || cumulativeLossEur > PLANT.cleaning_cost_eur * 2) {

@@ -152,7 +152,8 @@ export function isOutlierReading(prCurrent: number): boolean {
  * - RECOMMENDED: soiling 7-15% O pérdida acumulada > 80% del costo de limpieza
  * - URGENT:      soiling > 15% O pérdida acumulada > 2× costo de limpieza
  *
- * Break-even: días para que la pérdida diaria acumule el costo de limpieza
+ * Break-even: días restantes hasta que la pérdida acumulada supere el costo
+ * de limpieza. Si ya lo superó, break-even = 0 (limpiar ya).
  */
 export function calcCleaningRecommendation(
   inputs: CleaningAnalysisInputs
@@ -167,9 +168,12 @@ export function calcCleaningRecommendation(
 
   // Pérdida diaria estimada con el soiling actual
   const daily_loss_eur = daily_theoretical_kwh * (soiling_percent / 100) * energy_price_eur
-  const days_to_breakeven = daily_loss_eur > 0
-    ? Math.ceil(cleaning_cost_eur / daily_loss_eur)
-    : 9999
+  const remaining = cleaning_cost_eur - cumulative_loss_eur
+  const days_to_breakeven = remaining <= 0
+    ? 0
+    : daily_loss_eur > 0
+      ? Math.ceil(remaining / daily_loss_eur)
+      : 9999
 
   let recommendation: CleaningLevel
 

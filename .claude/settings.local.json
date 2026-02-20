@@ -68,7 +68,14 @@
       "Bash(ssh:*)",
       "Bash(git config:*)",
       "Bash(git -C \"c:\\\\Users\\\\jonat\\\\Jonathan\\\\Automatizaciones\\\\Dashboard fotovoltaico\\\\Performance\\\\Nueva Calculadora de Soiling\" status)",
-      "Bash(git -C \"c:\\\\Users\\\\jonat\\\\Jonathan\\\\Automatizaciones\\\\Dashboard fotovoltaico\\\\Performance\\\\Nueva Calculadora de Soiling\" remote -v)"
+      "Bash(git -C \"c:\\\\Users\\\\jonat\\\\Jonathan\\\\Automatizaciones\\\\Dashboard fotovoltaico\\\\Performance\\\\Nueva Calculadora de Soiling\" remote -v)",
+      "Bash(node scripts/generate-demo-santiago.mjs:*)",
+      "Bash(/bin/bash:*)",
+      "Bash(cmd /c \"echo test\")",
+      "Bash(cmd /c:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -Command \"Set-Location ''c:\\\\Users\\\\jonat\\\\Jonathan\\\\Automatizaciones\\\\Dashboard fotovoltaico\\\\Performance\\\\Nueva Calculadora de Soiling''; pnpm exec tsc --noEmit 2>&1\")",
+      "Bash(powershell -ExecutionPolicy Bypass -Command:*)",
+      "Bash(git add:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

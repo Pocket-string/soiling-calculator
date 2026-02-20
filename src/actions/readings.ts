@@ -17,6 +17,13 @@ import type { Plant } from '@/features/plants/types'
 import type { ProductionReading } from '@/features/readings/types'
 import { track } from '@/lib/tracking'
 
+/** Days between two YYYY-MM-DD date strings */
+function daysDiffStr(a: string, b: string): number {
+  const da = new Date(a + 'T00:00:00Z')
+  const db = new Date(b + 'T00:00:00Z')
+  return Math.round((db.getTime() - da.getTime()) / (86_400_000))
+}
+
 export async function createReading(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -111,7 +118,7 @@ export async function createReading(formData: FormData) {
   const loss_eur = kwh_loss * typedPlant.energy_price_eur
 
   // 10. Pérdidas acumuladas desde última limpieza
-  // Obtener fecha de última limpieza
+  // Usa interpolación trapezoidal para estimar pérdidas en días sin lectura
   const { data: lastCleaningRow } = await supabase
     .from('production_readings')
     .select('reading_date')
@@ -126,14 +133,47 @@ export async function createReading(formData: FormData) {
 
   const { data: accRows } = await supabase
     .from('production_readings')
-    .select('kwh_loss, loss_eur')
+    .select('reading_date, kwh_loss, loss_eur')
     .eq('plant_id', plant_id)
     .gt('reading_date', lastCleaningDate)
     .lt('reading_date', reading_date)
+    .order('reading_date', { ascending: true })
 
-  const cumulative_loss_kwh = (accRows ?? []).reduce((sum, r) => sum + (r.kwh_loss ?? 0), 0)
-  const cumulative_loss_eur_prev = (accRows ?? []).reduce((sum, r) => sum + (r.loss_eur ?? 0), 0)
-  const cumulative_loss_eur = cumulative_loss_eur_prev + loss_eur
+  // Trapezoidal interpolation: for gaps between readings,
+  // estimate daily loss as linear interpolation between neighbors
+  const rows = (accRows ?? []).map(r => ({
+    date: r.reading_date as string,
+    kwh_loss: (r.kwh_loss as number) ?? 0,
+    loss_eur: (r.loss_eur as number) ?? 0,
+  }))
+
+  let cumulative_loss_kwh = 0
+  let cumulative_loss_eur = 0
+
+  for (let i = 0; i < rows.length; i++) {
+    cumulative_loss_kwh += rows[i].kwh_loss
+    cumulative_loss_eur += rows[i].loss_eur
+    // Interpolate gap between consecutive readings
+    if (i > 0) {
+      const gapDays = daysDiffStr(rows[i - 1].date, rows[i].date) - 1
+      if (gapDays > 0) {
+        cumulative_loss_kwh += gapDays * (rows[i - 1].kwh_loss + rows[i].kwh_loss) / 2
+        cumulative_loss_eur += gapDays * (rows[i - 1].loss_eur + rows[i].loss_eur) / 2
+      }
+    }
+  }
+
+  // Add current reading + interpolate gap from last previous reading
+  cumulative_loss_kwh += kwh_loss
+  cumulative_loss_eur += loss_eur
+  if (rows.length > 0) {
+    const lastRow = rows[rows.length - 1]
+    const gapDays = daysDiffStr(lastRow.date, reading_date) - 1
+    if (gapDays > 0) {
+      cumulative_loss_kwh += gapDays * (lastRow.kwh_loss + kwh_loss) / 2
+      cumulative_loss_eur += gapDays * (lastRow.loss_eur + loss_eur) / 2
+    }
+  }
 
   // 11. Recomendación de limpieza
   const { recommendation, days_to_breakeven } = calcCleaningRecommendation({
