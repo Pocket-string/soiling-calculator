@@ -5,27 +5,9 @@ import { headers } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
 import { track } from '@/lib/tracking'
 import { leadSchema } from '@/features/leads/types/schemas'
+import { createRateLimiter } from '@/lib/rate-limit'
 
-// ── Rate Limiting (in-memory, per-instance) ──────────────────────────────────
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
-const RATE_LIMIT_MAX = 3
-
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return true
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) return false
-
-  entry.count++
-  return true
-}
+const checkRateLimit = createRateLimiter(3, 15 * 60 * 1000) // 3 req / 15 min
 
 type FormState = { error: Record<string, string[]> | string | null }
 

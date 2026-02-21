@@ -13,8 +13,13 @@ const https = require('https');
 
 const USER_ID    = '6d1b95f5-86ae-4ecb-9387-2de8ba0ca8c7';
 const PLANT_ID   = '17a0f33e-a177-4d6a-942e-013890d6075a';
-const ACCESS_TOKEN = 'sbp_973064eec76c672c5ffb3b4c633f740e18301b9d';
-const PROJECT_REF  = 'yduujlxtymhtnxcbwldh';
+const ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
+const PROJECT_REF  = process.env.SUPABASE_PROJECT_REF || 'yduujlxtymhtnxcbwldh';
+
+if (!ACCESS_TOKEN) {
+  console.error('Error: SUPABASE_ACCESS_TOKEN env var is required.\nRun: node --env-file=.env.local scripts/seed-readings.js');
+  process.exit(1);
+}
 
 // ── Constantes de la planta ──────────────────────────────────────────────────
 const TOTAL_POWER    = 8.0;   // kW

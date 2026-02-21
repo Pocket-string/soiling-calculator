@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createRateLimiter } from '@/lib/rate-limit'
 import type { ProductionReading } from '@/features/readings/types'
+
+const checkExportLimit = createRateLimiter(10, 5 * 60 * 1000) // 10 req / 5 min
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T12:00:00').toLocaleDateString('es-ES', {
@@ -57,6 +60,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+
+  // Rate limit by IP
+  const ip = _request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || _request.headers.get('x-real-ip')
+    || 'unknown'
+  if (!checkExportLimit(ip)) {
+    return NextResponse.json({ error: 'Demasiadas solicitudes' }, { status: 429 })
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -89,7 +101,8 @@ export async function GET(
   }
 
   const csv = buildCsv((readings ?? []) as ProductionReading[])
-  const filename = `soiling-${(plant.name as string).toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.csv`
+  const safeName = (plant.name as string).toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+  const filename = `soiling-${safeName}-${new Date().toISOString().split('T')[0]}.csv`
 
   return new NextResponse(csv, {
     headers: {
