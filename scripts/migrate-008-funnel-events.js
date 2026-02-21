@@ -5,8 +5,13 @@
 
 const https = require('https');
 
-const ACCESS_TOKEN = 'sbp_973064eec76c672c5ffb3b4c633f740e18301b9d';
-const PROJECT_REF  = 'yduujlxtymhtnxcbwldh';
+const ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN;
+const PROJECT_REF  = process.env.SUPABASE_PROJECT_REF || 'yduujlxtymhtnxcbwldh';
+
+if (!ACCESS_TOKEN) {
+  console.error('Error: SUPABASE_ACCESS_TOKEN env var is required.\nRun: node --env-file=.env.local scripts/migrate-008-funnel-events.js');
+  process.exit(1);
+}
 
 function runSQL(sql) {
   return new Promise((resolve, reject) => {

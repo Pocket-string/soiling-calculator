@@ -18,8 +18,13 @@ const USER_ID = '6d1b95f5-86ae-4ecb-9387-2de8ba0ca8c7'
 
 const SUPABASE_URL = 'https://yduujlxtymhtnxcbwldh.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkdXVqbHh0eW1odG54Y2J3bGRoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5OTg0NjMsImV4cCI6MjA3ODU3NDQ2M30.JWz-ClcOMMbebdhomZl0V4klS3mhlL_PnRUga3oiTUQ'
-const MGMT_TOKEN = 'sbp_973064eec76c672c5ffb3b4c633f740e18301b9d'
-const PROJECT_REF = 'yduujlxtymhtnxcbwldh'
+const MGMT_TOKEN = process.env.SUPABASE_ACCESS_TOKEN
+const PROJECT_REF = process.env.SUPABASE_PROJECT_REF || 'yduujlxtymhtnxcbwldh'
+
+if (!MGMT_TOKEN) {
+  console.error('Error: SUPABASE_ACCESS_TOKEN env var is required.\nRun: node --env-file=.env.local scripts/portfolio-v4.mjs')
+  process.exit(1)
+}
 
 const VIEWPORT = { width: 1440, height: 900 }
 const KNOWN_PASSWORD = 'PortfolioV4_temp!'
