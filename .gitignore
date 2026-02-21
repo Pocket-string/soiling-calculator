@@ -59,6 +59,7 @@ Thumbs.db
 # Claude Code
 .claude/skills/**/node_modules
 .claude/plugins
+.claude/settings.local.json
 *.mcp.json
 !example.mcp.json
 
