@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { serverEnv } from '@/lib/env'
 import type { Profile } from '@/features/invites/types'
 
 /** Verifica sesión activa. Si no hay sesión, redirige a /login. */
@@ -32,8 +32,7 @@ export async function requireAdmin() {
   if (profile?.access_level === 'admin') return user
 
   // Fallback: email-based check (for bootstrapping)
-  const adminEmail = process.env.ADMIN_EMAIL
-  if (adminEmail && user.email === adminEmail) return user
+  if (serverEnv.ADMIN_EMAIL && user.email === serverEnv.ADMIN_EMAIL) return user
 
   redirect('/plants')
 }

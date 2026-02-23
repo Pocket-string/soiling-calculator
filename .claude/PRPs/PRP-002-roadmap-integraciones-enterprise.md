@@ -14,7 +14,9 @@ Los usuarios tienen datos historicos de produccion en sus plataformas de monitor
 
 ### Solucion propuesta
 
-#### 1a. CSV Import (prioridad alta)
+#### 1a. CSV Import (Completado)
+
+**Estado:** Implementado (revisado 2026-02-21)
 
 **Endpoint:** `POST /api/plants/[id]/import`
 
@@ -191,7 +193,7 @@ CREATE TABLE org_members (
 ## Orden de implementacion sugerido
 
 ```
-Fase 7a: CSV Import (1-2 dias)
+Fase 7a: CSV Import (COMPLETADO)
   ↓
 Fase 7b: Email Alerts + Notification Preferences (1-2 dias)
   ↓

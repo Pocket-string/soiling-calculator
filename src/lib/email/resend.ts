@@ -1,23 +1,23 @@
 import { Resend } from 'resend'
+import { serverEnv } from '@/lib/env'
 
 // Lazy initialize Resend client to avoid build-time errors
 let resendInstance: Resend | null = null
 
 export function getResend(): Resend {
   if (!resendInstance) {
-    const apiKey = process.env.RESEND_API_KEY
-    if (!apiKey) {
+    if (!serverEnv.RESEND_API_KEY) {
       throw new Error('RESEND_API_KEY is not configured')
     }
-    resendInstance = new Resend(apiKey)
+    resendInstance = new Resend(serverEnv.RESEND_API_KEY)
   }
   return resendInstance
 }
 
 // Email configuration
 export const EMAIL_CONFIG = {
-  from: process.env.RESEND_FROM_EMAIL || 'Soiling Calc <onboarding@resend.dev>',
-  replyTo: process.env.ADMIN_EMAIL || 'hola@soilingcalc.com',
+  from: serverEnv.RESEND_FROM_EMAIL || 'Soiling Calc <onboarding@resend.dev>',
+  replyTo: serverEnv.ADMIN_EMAIL || 'hola@soilingcalc.com',
 }
 
 // ─── Invite Email ──────────────────────────────────────────────────────────────

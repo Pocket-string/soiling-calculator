@@ -8,8 +8,9 @@ import {
   useMap,
   useMapsLibrary,
 } from '@vis.gl/react-google-maps'
+import { clientEnv } from '@/lib/env'
 
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
+const API_KEY = clientEnv.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
 const DEFAULT_CENTER = { lat: -33.434, lng: -70.538 } // Santiago, Chile
 const DEFAULT_ZOOM = 5
 

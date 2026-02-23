@@ -306,4 +306,127 @@ test('should calculate total with tax', () => {
 
 ---
 
+### 🔒 Seguridad de Dependencias
+
+### 2025-02-21: Usar pnpm en lugar de npm para instalar dependencias
+- **Error**: npm es vulnerable a ataques de supply chain (typosquatting, dependency confusion, phantom dependencies)
+- **Fix**: Siempre usar `pnpm install` / `pnpm add`. pnpm usa symlinks y un store global que previene instalaciones fantasma
+- **Aplicar en**: Todos los proyectos nuevos y al onboarding
+
+---
+
+### ⚙️ Configuración y Entorno
+
+### 2025-02-21: Nunca commitear archivos .env
+- **Error**: Secrets expuestos en el historial de Git son irrecuperables (incluso tras rotación, quedan en el historial)
+- **Fix**: Verificar que `.env`, `.env.local`, `.mcp.json` y `settings.local.json` están en `.gitignore` ANTES del primer commit
+- **Aplicar en**: Setup inicial de todo proyecto
+
+### 2025-02-21: Usar .env.example como contrato del equipo
+- **Error**: Nuevos devs (o tu yo futuro) no saben qué variables configurar
+- **Fix**: Mantener `.env.example` actualizado con todas las keys (sin valores reales). Actualizarlo cada vez que se añade una nueva variable
+- **Aplicar en**: Cada vez que se añade una nueva variable de entorno
+
+### 2025-02-21: Validar variables de entorno al arrancar la app, no cuando se usan
+- **Error**: App arranca bien pero falla horas después cuando toca esa variable no configurada
+- **Fix**: Validar todas las env vars con Zod en un archivo `env.ts` que se importa en el inicio
+- **Aplicar en**: Todo nuevo proyecto antes del primer deploy
+
+### 2025-02-21: Nunca hardcodear credenciales en scripts auxiliares
+- **Error**: Tokens de Supabase Management API quedaron en `scripts/seed-readings.js` y 3 scripts de migración
+- **Fix**: Siempre usar `process.env.VARIABLE` + validación con `process.exit(1)` si falta. Ejecutar con `node --env-file=.env.local script.js`
+- **Aplicar en**: Todo script en `/scripts`, seeds, migraciones manuales
+
+---
+
+### 🗃️ Base de Datos (Supabase)
+
+### 2025-02-21: Habilitar RLS desde el día 0, no después
+- **Error**: Habilitar RLS en tabla con datos existentes puede romper queries en producción
+- **Fix**: Crear tabla + policies de RLS en la misma migración inicial
+- **Aplicar en**: Cualquier `apply_migration` que cree una tabla nueva
+
+### 2025-02-21: No incluir columnas GENERATED ALWAYS en INSERT/UPDATE
+- **Error**: Supabase rechaza INSERT/UPDATE si incluyes columnas como `total_power_kw` o `total_area_m2_calc`
+- **Fix**: Excluir columnas generadas del payload. Documentar en tipos con comentario `// GENERATED`
+- **Aplicar en**: Toda tabla con columnas calculadas
+
+### 2025-02-21: Siempre correr migraciones antes de desplegar
+- **Error**: Deploy sin migración aplicada → runtime crash en producción
+- **Fix**: El orden es: `apply_migration` → deploy. Nunca al revés
+- **Aplicar en**: Todo flujo de CI/CD
+
+---
+
+### 🧩 TypeScript y Código
+
+### 2025-02-21: Nunca usar `as` para castear tipos desconocidos
+- **Error**: `data as MyType` oculta errores reales que explotan en runtime
+- **Fix**: Usar Zod para validar y parsear datos externos (API, DB, formularios)
+- **Aplicar en**: Cualquier dato que venga de fuera del sistema
+
+### 2025-02-21: Los errores de tipo no son warnings, son bugs
+- **Error**: Ignorar errores de typecheck porque "funciona en dev"
+- **Fix**: `pnpm exec tsc --noEmit` debe pasar en 0 errores antes de cualquier commit
+- **Aplicar en**: Todos los proyectos
+
+---
+
+### 🔄 Git y Versionado
+
+### 2025-02-21: Nunca hacer force push a main/master
+- **Error**: Reescribir historial de rama compartida rompe el trabajo de otros (o tu propio historial)
+- **Fix**: Si necesitas revertir, usar `git revert`. Force push solo en ramas personales
+- **Aplicar en**: Todo proyecto con más de 1 colaborador (o tu yo futuro)
+
+### 2025-02-21: Commits atómicos — una idea, un commit
+- **Error**: Commits gigantes ("fix stuff") imposibilitan hacer `git bisect` o revertir cambios puntuales
+- **Fix**: Usar Conventional Commits con scope específico (`fix: rate limit on export endpoint`)
+- **Aplicar en**: Todos los proyectos
+
+---
+
+### 🚀 Deploy y Producción
+
+### 2025-02-21: Security headers desde el día 1
+- **Error**: App desplegada sin CSP, X-Frame-Options, ni X-Content-Type-Options durante semanas
+- **Fix**: Incluir security headers en `next.config.ts` desde el template inicial (CSP, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, `poweredByHeader: false`)
+- **Aplicar en**: Todo proyecto nuevo, en el `next.config.ts` del boilerplate
+
+### 2025-02-21: Rate limiting en TODOS los endpoints públicos
+- **Error**: `/api/plants/[id]/export` no tenía rate limit — un atacante podía hacer DoS descargando CSVs infinitos
+- **Fix**: Usar `createRateLimiter()` compartido en todo endpoint público. Server Actions y API Routes por igual
+- **Aplicar en**: Cualquier endpoint accesible sin auth o con auth básica
+
+### 2025-02-21: Sanitizar filenames en Content-Disposition
+- **Error**: `plant.name` con caracteres especiales (acentos, comillas, newlines) puede inyectar headers HTTP
+- **Fix**: `name.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')`
+- **Aplicar en**: Todo endpoint que genere archivos descargables (CSV, PDF, Excel)
+
+### 2025-02-21: Docker standalone necesita public/ y lockfile
+- **Error**: `COPY --from=builder /app/public ./public` falla si no existe. `--frozen-lockfile` falla sin lockfile commiteado
+- **Fix**: Agregar `mkdir -p public` en Dockerfile. Asegurar que `pnpm-lock.yaml` NO está en `.gitignore`
+- **Aplicar en**: Todo deploy Docker con Next.js standalone
+
+---
+
+### 📊 Cálculos y Datos
+
+### 2025-02-21: Interpolar datos faltantes entre lecturas (trapezoidal)
+- **Error**: Sumar solo lecturas existentes subestimaba pérdidas acumuladas en ~90%
+- **Fix**: Para N días sin lectura entre dos puntos con pérdidas L1 y L2: `gap_loss = (N-1) × (L1 + L2) / 2`
+- **Aplicar en**: Cualquier cálculo acumulativo con datos no diarios
+
+### 2025-02-21: Break-even debe usar costo RESTANTE, no total
+- **Error**: Fórmula `cleaning_cost / daily_loss` daba 205 días cuando solo faltaban $5 de los $80
+- **Fix**: `remaining = cleaning_cost - cumulative_loss; days = remaining / daily_loss`
+- **Aplicar en**: Cualquier cálculo de ROI o punto de equilibrio incremental
+
+### 2025-02-21: Open-Meteo devuelve irradiancia en MJ/m²/día
+- **Error**: Usar el valor directo como kWh/m² sobreestima la irradiancia 3.6x
+- **Fix**: `shortwave_radiation_sum / 3.6` para convertir MJ → kWh
+- **Aplicar en**: Toda integración con APIs meteorológicas (verificar unidades siempre)
+
+---
+
 *Este archivo es el cerebro de la fábrica. Cada error documentado la hace más fuerte.*

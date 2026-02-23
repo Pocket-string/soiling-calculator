@@ -1,6 +1,7 @@
 import { MainShell } from '@/components/layout/MainShell'
 import { createClient } from '@/lib/supabase/server'
 import { getProfile } from '@/lib/auth'
+import { serverEnv } from '@/lib/env'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -15,7 +16,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
     // Admin: profile-based OR email fallback (bootstrapping)
     isAdmin = profile?.access_level === 'admin'
-      || (!!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL)
+      || (!!serverEnv.ADMIN_EMAIL && user.email === serverEnv.ADMIN_EMAIL)
 
     // Trial: only check for non-admin, non-paid users
     if (profile && profile.access_level !== 'admin' && profile.access_level !== 'paid') {

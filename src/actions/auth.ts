@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { serverEnv } from '@/lib/env'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -36,7 +37,7 @@ export async function resetPassword(formData: FormData) {
   const email = formData.get('email') as string
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/update-password`,
+    redirectTo: `${serverEnv.NEXT_PUBLIC_SITE_URL}/update-password`,
   })
 
   if (error) {
