@@ -11,7 +11,12 @@ const faqs = [
   {
     question: '¿Con qué inversores funciona?',
     answer:
-      'Con cualquier inversor que te permita ver la producción en kWh: Huawei SUN2000, SMA Sunny Boy, Fronius, SolarEdge, Growatt y la mayoría de marcas del mercado. Si puedes leer los kWh, puedes usar la app.',
+      'Con cualquier inversor que te permita ver la produccion en kWh. Para SolarEdge y Huawei FusionSolar ofrecemos conexion directa via API: sincroniza tus lecturas automaticamente cada dia sin registrar nada a mano. Para otras marcas (SMA, Fronius, Growatt, etc.) puedes registrar los kWh manualmente en segundos.',
+  },
+  {
+    question: '¿Como funciona la integracion automatica con mi inversor?',
+    answer:
+      'Si tienes un inversor SolarEdge o Huawei FusionSolar, puedes conectarlo en 2 minutos con tus credenciales API. La app incluye guias paso a paso para obtenerlas. Una vez conectado, sincronizamos la produccion diaria automaticamente — tu solo revisas los resultados.',
   },
   {
     question: '¿Mis datos de producción son privados?',

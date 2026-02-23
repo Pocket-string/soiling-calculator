@@ -35,8 +35,12 @@ export function LandingHero() {
         </div>
 
         <p className="text-sm text-foreground-muted">
-          30 días gratis · Sin tarjeta de crédito · Sin compromiso
+          30 dias gratis · Sin tarjeta de credito · Sin compromiso
         </p>
+
+        <div className="inline-flex items-center gap-2 bg-surface-alt border border-border rounded-full px-4 py-1.5 text-sm text-foreground-muted font-medium">
+          Compatible con SolarEdge · Huawei FusionSolar
+        </div>
       </div>
     </section>
   )
