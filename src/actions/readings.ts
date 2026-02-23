@@ -16,6 +16,9 @@ import {
 import type { Plant } from '@/features/plants/types'
 import type { ProductionReading } from '@/features/readings/types'
 import { track } from '@/lib/tracking'
+import { createServiceClient } from '@/lib/supabase/server'
+import { sendSoilingAlertEmail } from '@/lib/email/resend'
+import { serverEnv } from '@/lib/env'
 
 /** Days between two YYYY-MM-DD date strings */
 function daysDiffStr(a: string, b: string): number {
@@ -228,9 +231,101 @@ export async function createReading(formData: FormData) {
 
   track({ event: 'READING_CREATED', userId: user.id, metadata: { plantId: plant_id, soiling: soiling_percent } })
 
+  // Fire-and-forget: check soiling alerts (never blocks response)
+  if (soiling_percent != null && recommendation !== 'OK') {
+    maybeSendSoilingAlert({
+      userId: user.id,
+      userEmail: user.email!,
+      plant: typedPlant,
+      soilingPercent: soiling_percent,
+      recommendation,
+      cumulativeLossEur: cumulative_loss_eur,
+      daysToBreakeven: days_to_breakeven,
+      readingDate: reading_date,
+    })
+  }
+
   revalidatePath(`/plants/${plant_id}`)
   revalidatePath('/plants')
   return { data: reading as ProductionReading }
+}
+
+// ── Soiling Alert (fire-and-forget) ─────────────────────────────────────────
+
+interface AlertParams {
+  userId: string
+  userEmail: string
+  plant: Plant
+  soilingPercent: number
+  recommendation: string
+  cumulativeLossEur: number
+  daysToBreakeven: number | null
+  readingDate: string
+}
+
+const COOLDOWN_HOURS = 24
+
+async function maybeSendSoilingAlert(params: AlertParams): Promise<void> {
+  try {
+    const supabase = createServiceClient()
+
+    // 1. Fetch user's notification preferences (defaults if no row)
+    const { data: prefs } = await supabase
+      .from('notification_preferences')
+      .select('*')
+      .eq('user_id', params.userId)
+      .maybeSingle()
+
+    const enabled = prefs?.email_alerts_enabled ?? true
+    const warningThreshold = prefs?.soiling_threshold_warning ?? 5.0
+    const urgentThreshold = prefs?.soiling_threshold_urgent ?? 10.0
+
+    // 2. Check if alerts are enabled
+    if (!enabled) return
+
+    // 3. Check if soiling exceeds threshold
+    if (params.soilingPercent < warningThreshold) return
+
+    // 4. Cooldown: skip if alert sent for this plant in last 24h
+    const cooldownCutoff = new Date(Date.now() - COOLDOWN_HOURS * 60 * 60 * 1000).toISOString()
+    const { data: recentAlert } = await supabase
+      .from('notification_log')
+      .select('id')
+      .eq('user_id', params.userId)
+      .eq('plant_id', params.plant.id)
+      .gte('sent_at', cooldownCutoff)
+      .limit(1)
+      .maybeSingle()
+
+    if (recentAlert) return
+
+    // 5. Determine alert type
+    const alertType = params.soilingPercent >= urgentThreshold ? 'urgent' : 'warning'
+
+    // 6. Send email
+    const plantUrl = `${serverEnv.NEXT_PUBLIC_SITE_URL}/plants/${params.plant.id}`
+    await sendSoilingAlertEmail({
+      to: params.userEmail,
+      plantName: params.plant.name,
+      soilingPercent: params.soilingPercent,
+      recommendation: params.recommendation,
+      cumulativeLossEur: params.cumulativeLossEur,
+      currency: params.plant.currency ?? 'EUR',
+      daysToBreakeven: params.daysToBreakeven,
+      readingDate: params.readingDate,
+      plantUrl,
+    })
+
+    // 7. Log the alert (for cooldown)
+    await supabase.from('notification_log').insert({
+      user_id: params.userId,
+      plant_id: params.plant.id,
+      alert_type: alertType,
+      soiling_percent: params.soilingPercent,
+    })
+  } catch (e) {
+    console.warn('[alert] Soiling alert failed (non-blocking):', e)
+  }
 }
 
 export async function deleteReading(readingId: string, plantId: string) {

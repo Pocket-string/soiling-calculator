@@ -122,3 +122,67 @@ export async function sendInviteLinkEmail(
     return { error: message }
   }
 }
+
+// ─── Soiling Alert Email ──────────────────────────────────────────────────────
+
+const RECOMMENDATION_LABELS: Record<string, string> = {
+  WATCH: 'Vigilar',
+  RECOMMENDED: 'Limpieza recomendada',
+  URGENT: 'Limpieza urgente',
+}
+
+interface SoilingAlertEmailParams {
+  to: string
+  plantName: string
+  soilingPercent: number
+  recommendation: string
+  cumulativeLossEur: number
+  currency: string
+  daysToBreakeven: number | null
+  readingDate: string
+  plantUrl: string
+}
+
+export async function sendSoilingAlertEmail(
+  params: SoilingAlertEmailParams,
+): Promise<{ error: string | null }> {
+  try {
+    const resend = getResend()
+    const recLabel = RECOMMENDATION_LABELS[params.recommendation] ?? params.recommendation
+    const breakevenLine = params.daysToBreakeven != null
+      ? `   Dias hasta break-even: ${params.daysToBreakeven}`
+      : `   Break-even: ya superado — limpiar cuanto antes`
+
+    await resend.emails.send({
+      from: EMAIL_CONFIG.from,
+      to: params.to,
+      replyTo: EMAIL_CONFIG.replyTo,
+      subject: `[Soiling ${params.soilingPercent.toFixed(1)}%] ${params.plantName} — ${recLabel}`,
+      text: [
+        `Alerta de soiling para tu planta "${params.plantName}":`,
+        ``,
+        `━━━ Resumen ━━━`,
+        ``,
+        `   Soiling actual: ${params.soilingPercent.toFixed(1)}%`,
+        `   Recomendacion: ${recLabel}`,
+        `   Perdida acumulada: ${params.cumulativeLossEur.toFixed(2)} ${params.currency}`,
+        breakevenLine,
+        `   Fecha lectura: ${params.readingDate}`,
+        ``,
+        `━━━━━━━━━━━━━━━`,
+        ``,
+        `Ver detalle de la planta:`,
+        `   ${params.plantUrl}`,
+        ``,
+        `Puedes ajustar los umbrales de alerta en Configuracion > Alertas por Email.`,
+        ``,
+        `— Soiling Calc`,
+      ].join('\n'),
+    })
+
+    return { error: null }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Error desconocido'
+    return { error: message }
+  }
+}

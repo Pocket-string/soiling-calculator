@@ -2,6 +2,8 @@ import { requireAuth, getProfile } from '@/lib/auth'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ProfileForm } from '@/features/settings/components/ProfileForm'
 import { ChangePasswordForm } from '@/features/settings/components/ChangePasswordForm'
+import { NotificationPreferencesForm } from '@/features/settings/components/NotificationPreferencesForm'
+import { getNotificationPreferences } from '@/actions/notifications'
 
 export const metadata = { title: 'Configuración | Soiling Calc' }
 
@@ -15,6 +17,7 @@ const ACCESS_LEVEL_LABELS: Record<string, { label: string; color: string }> = {
 export default async function SettingsPage() {
   const user = await requireAuth()
   const profile = await getProfile(user.id)
+  const notifPrefs = await getNotificationPreferences()
 
   const accessLevel = profile?.access_level ?? 'free'
   const levelInfo = ACCESS_LEVEL_LABELS[accessLevel] ?? ACCESS_LEVEL_LABELS.free
@@ -77,6 +80,17 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent>
           <ChangePasswordForm />
+        </CardContent>
+      </Card>
+
+      {/* Alertas por Email */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Alertas por Email</CardTitle>
+          <CardDescription>Configura alertas automaticas de soiling para tus plantas</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <NotificationPreferencesForm initialPrefs={notifPrefs} />
         </CardContent>
       </Card>
     </div>
