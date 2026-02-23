@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ProfileForm } from '@/features/settings/components/ProfileForm'
 import { ChangePasswordForm } from '@/features/settings/components/ChangePasswordForm'
 import { NotificationPreferencesForm } from '@/features/settings/components/NotificationPreferencesForm'
+import { ApiKeysManager } from '@/features/settings/components/ApiKeysManager'
 import { getNotificationPreferences } from '@/actions/notifications'
+import { listApiKeys } from '@/actions/api-keys'
 
 export const metadata = { title: 'Configuración | Soiling Calc' }
 
@@ -18,6 +20,7 @@ export default async function SettingsPage() {
   const user = await requireAuth()
   const profile = await getProfile(user.id)
   const notifPrefs = await getNotificationPreferences()
+  const apiKeys = await listApiKeys()
 
   const accessLevel = profile?.access_level ?? 'free'
   const levelInfo = ACCESS_LEVEL_LABELS[accessLevel] ?? ACCESS_LEVEL_LABELS.free
@@ -91,6 +94,17 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent>
           <NotificationPreferencesForm initialPrefs={notifPrefs} />
+        </CardContent>
+      </Card>
+
+      {/* API Keys */}
+      <Card>
+        <CardHeader>
+          <CardTitle>API Keys</CardTitle>
+          <CardDescription>Gestiona tus API keys para acceder a la API REST</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ApiKeysManager initialKeys={apiKeys} />
         </CardContent>
       </Card>
     </div>
