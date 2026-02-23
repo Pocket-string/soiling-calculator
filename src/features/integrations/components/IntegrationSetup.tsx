@@ -205,6 +205,8 @@ function SetupForm({ plantId }: { plantId: string }) {
         }}
       />
 
+      {provider !== '' && <ProviderGuide provider={provider} />}
+
       {provider === 'solaredge' && (
         <SolarEdgeFields
           plantId={plantId}
@@ -352,5 +354,78 @@ function HuaweiFields({ plantId, isPending, onTest, onSave, testResult, error }:
         </Button>
       </div>
     </form>
+  )
+}
+
+// ── Provider Guide (collapsible credential instructions) ────────────────────
+
+const PROVIDER_GUIDES: Record<string, { title: string; steps: string[] }> = {
+  solaredge: {
+    title: 'Como obtener tus credenciales de SolarEdge',
+    steps: [
+      'Inicia sesion en monitoring.solaredge.com con tu cuenta de SolarEdge.',
+      'Ve a Admin > Acceso API en el menu lateral.',
+      'Activa el acceso API y haz clic en "Generar clave API".',
+      'Copia la API Key generada. Tratala como una contrasena — no la compartas.',
+      'El Site ID esta en la URL del portal: monitoring.solaredge.com/site/XXXXXX — copia ese numero.',
+    ],
+  },
+  huawei: {
+    title: 'Como obtener tus credenciales de Huawei FusionSolar',
+    steps: [
+      'Accede al portal web de FusionSolar (region segun tu instalacion) o la app movil.',
+      'Ve a Configuracion > API Northbound > Cuentas de terceros.',
+      'Crea un nuevo usuario y system code para acceso API.',
+      'Anota el system code inmediatamente — no se puede recuperar despues de cerrar el dialogo.',
+      'Selecciona tu region: Europa = eu5, Internacional = intl, Latinoamerica = la5.',
+    ],
+  },
+}
+
+function ProviderGuide({ provider }: { provider: string }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const guide = PROVIDER_GUIDES[provider]
+
+  if (!guide) return null
+
+  return (
+    <div className="rounded-lg border border-accent-200 bg-accent-50/50">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center justify-between px-4 py-3 text-left"
+      >
+        <span className="flex items-center gap-2 text-sm font-medium text-accent-700">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {guide.title}
+        </span>
+        <svg
+          className={`h-4 w-4 text-accent-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="px-4 pb-4">
+          <ol className="space-y-3">
+            {guide.steps.map((step, i) => (
+              <li key={i} className="flex gap-3 text-sm text-foreground-muted">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-500 text-[11px] font-bold text-white">
+                  {i + 1}
+                </span>
+                <span className="pt-0.5">{step}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+    </div>
   )
 }

@@ -48,7 +48,7 @@ export async function createPlant(formData: FormData) {
   track({ event: 'PLANT_CREATED', userId: user.id, metadata: { plantId: data.id } })
 
   revalidatePath('/plants')
-  redirect(`/plants/${data.id}`)
+  return { data: { id: data.id } }
 }
 
 export async function updatePlant(plantId: string, formData: FormData) {
