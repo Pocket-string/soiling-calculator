@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth'
+import { serverEnv } from '@/lib/env'
 import { sendInviteLinkEmail } from '@/lib/email/resend'
 import { consumeInviteSchema } from '@/features/invites/types/schemas'
 import type { Invite } from '@/features/invites/types'
@@ -76,8 +77,7 @@ export async function createInvite(
     .eq('id', leadId)
 
   // 6. Build invite URL
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL
-    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+  const baseUrl = serverEnv.NEXT_PUBLIC_SITE_URL
   const inviteUrl = `${baseUrl}/invite/${typedInvite.token}`
 
   // 7. Send email (graceful)
