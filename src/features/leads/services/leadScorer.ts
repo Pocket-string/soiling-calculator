@@ -50,7 +50,12 @@ export type ScoreTier = 'excellent' | 'good' | 'fair' | 'low'
  * - reporting_frequency daily: +20, weekly: +15, monthly: +5
  * - location_country + location_city both filled: +10
  */
-export function calculateLeadScore(lead: Lead): ScoreBreakdown {
+type ScoringFields = Pick<Lead,
+  'can_commit_weekly' | 'inverter_brand' | 'system_kwp' |
+  'reporting_frequency' | 'location_country' | 'location_city'
+>
+
+export function calculateLeadScore(lead: ScoringFields): ScoreBreakdown {
   let commitment = 0
   let inverter = 0
   let systemSize = 0

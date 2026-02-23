@@ -6,6 +6,8 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { track } from '@/lib/tracking'
 import { leadSchema } from '@/features/leads/types/schemas'
 import { createRateLimiter } from '@/lib/rate-limit'
+import { serverEnv } from '@/lib/env'
+import { calculateLeadScore, getScoreTier, SCORE_TIER_LABELS } from '@/features/leads/services/leadScorer'
 
 const checkRateLimit = createRateLimiter(3, 15 * 60 * 1000) // 3 req / 15 min
 
@@ -60,29 +62,47 @@ export async function createLead(
   // Track funnel event
   track({ event: 'LEAD_APPLIED', metadata: { email: leadData.email, name: leadData.name }, ip })
 
+  // Compute score for notification
+  const score = calculateLeadScore(leadData)
+  const tier = getScoreTier(score.total)
+  const tierLabel = SCORE_TIER_LABELS[tier]
+  const adminUrl = `${serverEnv.NEXT_PUBLIC_SITE_URL}/admin/leads`
+
   // Notificar admin vía Resend (graceful — no bloquea si falla)
-  const resendKey = process.env.RESEND_API_KEY
-  const adminEmail = process.env.ADMIN_EMAIL
-  if (resendKey && adminEmail) {
+  if (serverEnv.RESEND_API_KEY && serverEnv.ADMIN_EMAIL) {
     try {
       const { Resend } = await import('resend')
-      const resend = new Resend(resendKey)
+      const resend = new Resend(serverEnv.RESEND_API_KEY)
       await resend.emails.send({
-        from: 'Soiling Calc <noreply@soilingcalc.com>',
-        to: adminEmail,
-        subject: `Nueva postulación: ${leadData.name} (${leadData.email})`,
+        from: serverEnv.RESEND_FROM_EMAIL || 'Soiling Calc <onboarding@resend.dev>',
+        to: serverEnv.ADMIN_EMAIL,
+        subject: `[Score ${score.total}/100 — ${tierLabel}] Nueva postulación: ${leadData.name}`,
         text: [
           `Nueva postulación recibida:`,
           ``,
-          `Nombre: ${leadData.name}`,
-          `Email: ${leadData.email}`,
-          `País: ${leadData.location_country ?? '—'}`,
-          `Ciudad: ${leadData.location_city ?? '—'}`,
-          `kWp: ${leadData.system_kwp ?? '—'}`,
-          `Inversor: ${leadData.inverter_brand ?? '—'}`,
-          `Plataforma actual: ${leadData.inverter_model ?? '—'}`,
-          `Frecuencia: ${leadData.reporting_frequency ?? '—'}`,
-          `Compromiso 4 semanas: ${leadData.can_commit_weekly ? 'Sí' : 'No'}`,
+          `━━━ Score: ${score.total}/100 (${tierLabel}) ━━━`,
+          `  Compromiso semanal: ${score.commitment}/30`,
+          `  Inversor: ${score.inverter}/25`,
+          `  Tamaño sistema: ${score.systemSize}/15`,
+          `  Frecuencia reporte: ${score.frequency}/20`,
+          `  Ubicación completa: ${score.location}/10`,
+          ``,
+          `━━━ Datos del lead ━━━`,
+          `  Nombre: ${leadData.name}`,
+          `  Email: ${leadData.email}`,
+          `  País: ${leadData.location_country ?? '—'}`,
+          `  Ciudad: ${leadData.location_city ?? '—'}`,
+          `  kWp: ${leadData.system_kwp ?? '—'}`,
+          `  Inversor: ${leadData.inverter_brand ?? '—'}`,
+          `  Plataforma: ${leadData.inverter_model ?? '—'}`,
+          `  Frecuencia: ${leadData.reporting_frequency ?? '—'}`,
+          `  Compromiso 4 semanas: ${leadData.can_commit_weekly ? 'Sí' : 'No'}`,
+          ``,
+          score.total >= 60
+            ? `⚡ Lead calificado — invitar pronto`
+            : `📋 Lead registrado — revisar manualmente`,
+          ``,
+          `Gestionar leads: ${adminUrl}`,
         ].join('\n'),
       })
     } catch (e) {
