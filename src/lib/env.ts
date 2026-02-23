@@ -18,6 +18,8 @@ const serverSchema = z.object({
   RESEND_FROM_EMAIL: z.string().min(1).optional(),
   NEXT_PUBLIC_SITE_URL: z.string().url().default('http://localhost:3000'),
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z.string().min(1).optional(),
+  INTEGRATION_ENCRYPTION_KEY: z.string().length(64, 'Must be 32-byte hex (64 chars)').optional(),
+  CRON_SECRET: z.string().min(32, 'CRON_SECRET must be at least 32 chars').optional(),
 })
 
 const clientSchema = z.object({

@@ -1,7 +1,9 @@
 import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getPlantById } from '@/actions/plants'
+import { getIntegration } from '@/actions/integrations'
 import { PlantForm, DeletePlantButton } from '@/features/plants/components'
+import { IntegrationSetup } from '@/features/integrations/components/IntegrationSetup'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import Link from 'next/link'
 
@@ -21,7 +23,10 @@ export default async function PlantSettingsPage({ params }: Props) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: plant, error } = await getPlantById(id)
+  const [{ data: plant, error }, { data: integration }] = await Promise.all([
+    getPlantById(id),
+    getIntegration(id),
+  ])
   if (!plant || error) notFound()
 
   return (
@@ -40,6 +45,19 @@ export default async function PlantSettingsPage({ params }: Props) {
         </CardHeader>
         <CardContent>
           <PlantForm plant={plant} />
+        </CardContent>
+      </Card>
+
+      {/* Inverter Integration */}
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>Integracion con inversor</CardTitle>
+          <CardDescription>
+            Conecta tu inversor para sincronizar lecturas de produccion automaticamente.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <IntegrationSetup plantId={id} integration={integration} />
         </CardContent>
       </Card>
 

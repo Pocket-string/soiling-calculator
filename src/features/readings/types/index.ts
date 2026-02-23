@@ -37,7 +37,7 @@ export interface ProductionReading {
   created_at: string
 }
 
-export type ReadingType = 'DAILY' | 'WEEKLY' | 'MONTHLY'
+export type ReadingType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'AUTOMATIC'
 
 export interface ReadingFormData {
   plant_id: string
