@@ -7,6 +7,7 @@ const PUBLIC_ROUTES = new Set([
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/email-confirmed',
   '/servicios',
   '/equipo',
   '/contacto',
@@ -18,7 +19,7 @@ const PUBLIC_ROUTES = new Set([
   '/terminos',
 ])
 
-const PUBLIC_PREFIXES = ['/invite/']
+const PUBLIC_PREFIXES = ['/invite/', '/auth/']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

@@ -17,7 +17,7 @@ export function getResend(): Resend {
 // Email configuration
 export const EMAIL_CONFIG = {
   from: serverEnv.RESEND_FROM_EMAIL || 'Soiling Calc <onboarding@resend.dev>',
-  replyTo: serverEnv.ADMIN_EMAIL || 'hola@soilingcalc.com',
+  replyTo: 'contacto@soilingcalc.com',
 }
 
 // ─── Invite Email ──────────────────────────────────────────────────────────────
