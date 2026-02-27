@@ -4,6 +4,7 @@ import { calculateLeadScore } from '@/features/leads/services/leadScorer'
 import { KpiCard } from '@/components/ui/kpi-card'
 import { LeadsTable } from './LeadsTable'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Leads | Admin — Soiling Calc' }
 
 export default async function AdminLeadsPage() {

@@ -2,6 +2,7 @@ import { requireAdmin } from '@/lib/auth'
 import { createServiceClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Funnel | Soiling Calc' }
 
 const FUNNEL_EVENTS = [
