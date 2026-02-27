@@ -20,8 +20,8 @@ const navItems = [
 ]
 
 const adminItems = [
-  { href: '/admin/leads', label: 'Gestion Leads', icon: UsersIcon },
-  { href: '/admin/funnel', label: 'Funnel', icon: ChartBarIcon },
+  { href: '/panel/leads', label: 'Gestion Leads', icon: UsersIcon },
+  { href: '/panel/funnel', label: 'Funnel', icon: ChartBarIcon },
 ]
 
 export function Sidebar({

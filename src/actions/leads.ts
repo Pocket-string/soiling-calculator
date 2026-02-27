@@ -37,7 +37,7 @@ export async function updateLeadStatus(
 
   if (error) return { error: error.message }
 
-  revalidatePath('/admin/leads')
+  revalidatePath('/panel/leads')
   return { error: null }
 }
 
@@ -55,6 +55,6 @@ export async function updateLeadNotes(
 
   if (error) return { error: error.message }
 
-  revalidatePath('/admin/leads')
+  revalidatePath('/panel/leads')
   return { error: null }
 }

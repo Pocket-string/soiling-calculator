@@ -66,7 +66,7 @@ export async function createLead(
   const score = calculateLeadScore(leadData)
   const tier = getScoreTier(score.total)
   const tierLabel = SCORE_TIER_LABELS[tier]
-  const adminUrl = `${serverEnv.NEXT_PUBLIC_SITE_URL}/admin/leads`
+  const adminUrl = `${serverEnv.NEXT_PUBLIC_SITE_URL}/panel/leads`
 
   // Notificar admin vía Resend (graceful — no bloquea si falla)
   if (serverEnv.RESEND_API_KEY && serverEnv.ADMIN_EMAIL) {

@@ -98,7 +98,7 @@ export async function createInvite(
   track({ event: 'LEAD_INVITED', userId: admin.id, leadId, metadata: { email: typedLead.email } })
 
   // 9. Revalidate
-  revalidatePath('/admin/leads')
+  revalidatePath('/panel/leads')
 
   return { inviteUrl, emailSent, error: null }
 }
@@ -248,7 +248,7 @@ export async function consumeInvite(
   track({ event: 'INVITE_CONSUMED', userId: authData.user.id, leadId: invite.lead_id, metadata: { email: invite.email } })
 
   // 9. Revalidate
-  revalidatePath('/admin/leads')
+  revalidatePath('/panel/leads')
 
   // 10. Redirect to login (user needs to log in with their new credentials)
   redirect('/login?registered=true')
