@@ -2,7 +2,10 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { checkTrialStatus } from '@/lib/auth'
 import { getPlants } from '@/actions/plants'
+import { getOnboardingStatus } from '@/actions/onboarding'
+import { getOnboardingQuestions } from '@/features/intelligence/services/activationConcierge'
 import { PlantList } from '@/features/plants/components'
+import { OnboardingBanner } from '@/features/intelligence/components/OnboardingBanner'
 import Link from 'next/link'
 
 export const metadata = { title: 'Mis Plantas | Soiling Calculator' }
@@ -12,11 +15,30 @@ export default async function PlantsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: plants } = await getPlants()
-  const { expired: trialExpired } = await checkTrialStatus()
+  const [{ data: plants }, { expired: trialExpired }, onboarding] = await Promise.all([
+    getPlants(),
+    checkTrialStatus(),
+    getOnboardingStatus(user.id),
+  ])
+
+  // Show onboarding if user hasn't completed or dismissed it
+  const showOnboarding = !onboarding?.completed_at
+  const questions = showOnboarding ? getOnboardingQuestions() : []
+  // Determine which step to resume at (skip already-answered questions)
+  const initialStep = showOnboarding && onboarding
+    ? questions.findIndex((q) => !onboarding[q.key])
+    : 0
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {/* Onboarding */}
+      {showOnboarding && questions.length > 0 && (
+        <OnboardingBanner
+          questions={questions}
+          initialStep={initialStep >= 0 ? initialStep : 0}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>

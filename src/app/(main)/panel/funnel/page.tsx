@@ -1,5 +1,7 @@
 import { requireAdmin } from '@/lib/auth'
 import { createServiceClient } from '@/lib/supabase/server'
+import { getLatestWeeklyReport } from '@/actions/intelligence'
+import { WeeklyReportSection } from '@/features/intelligence/components/WeeklyReportSection'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const dynamic = 'force-dynamic'
@@ -69,7 +71,10 @@ function conversionRate(from: number, to: number): string {
 
 export default async function FunnelPage() {
   await requireAdmin()
-  const { counts, recent } = await getFunnelData()
+  const [{ counts, recent }, latestReport] = await Promise.all([
+    getFunnelData(),
+    getLatestWeeklyReport(),
+  ])
 
   const countMap = Object.fromEntries(counts.map((c) => [c.event_name, c]))
 
@@ -166,6 +171,9 @@ export default async function FunnelPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Weekly Report */}
+      <WeeklyReportSection initialReport={latestReport} />
     </div>
   )
 }

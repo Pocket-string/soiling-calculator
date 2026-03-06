@@ -50,9 +50,11 @@ export async function createLead(
   }
 
   // Upsert por email (actualiza si ya existe, no duplica)
-  const { error } = await supabase
+  const { data: upsertedLead, error } = await supabase
     .from('leads')
     .upsert({ ...leadData, status: 'applied' }, { onConflict: 'email' })
+    .select('id')
+    .single()
 
   if (error) {
     console.error('[createLead] Supabase error:', error)
@@ -61,6 +63,13 @@ export async function createLead(
 
   // Track funnel event
   track({ event: 'LEAD_APPLIED', metadata: { email: leadData.email, name: leadData.name }, ip })
+
+  // Fire-and-forget: triage lead enrichment
+  if (upsertedLead?.id) {
+    import('@/actions/intelligence').then(({ triageLeadAction }) =>
+      triageLeadAction(upsertedLead.id).catch(() => {})
+    )
+  }
 
   // Compute score for notification
   const score = calculateLeadScore(leadData)

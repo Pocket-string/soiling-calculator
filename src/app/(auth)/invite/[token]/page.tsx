@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getInviteByToken } from '@/actions/invites'
+import { track, EVENTS } from '@/lib/tracking'
 import { InviteForm } from '@/features/invites/components/InviteForm'
 
 interface Props {
@@ -11,6 +12,10 @@ export const metadata = { title: 'Activar Cuenta | Soiling Calc' }
 export default async function InvitePage({ params }: Props) {
   const { token } = await params
   const { invite, error } = await getInviteByToken(token)
+
+  if (invite) {
+    track({ event: EVENTS.INVITE_OPENED, leadId: invite.lead_id, metadata: { email: invite.email } })
+  }
 
   if (error || !invite) {
     return (

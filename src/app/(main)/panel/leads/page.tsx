@@ -1,5 +1,6 @@
 import { requireAdmin } from '@/lib/auth'
 import { getLeads } from '@/actions/leads'
+import { getLeadEnrichments } from '@/actions/intelligence'
 import { calculateLeadScore } from '@/features/leads/services/leadScorer'
 import { KpiCard } from '@/components/ui/kpi-card'
 import { LeadsTable } from './LeadsTable'
@@ -10,7 +11,10 @@ export const metadata = { title: 'Leads | Admin — Soiling Calc' }
 export default async function AdminLeadsPage() {
   await requireAdmin()
 
-  const { data: leads, error } = await getLeads()
+  const [{ data: leads, error }, enrichments] = await Promise.all([
+    getLeads(),
+    getLeadEnrichments(),
+  ])
 
   if (error) {
     return (
@@ -68,7 +72,7 @@ export default async function AdminLeadsPage() {
       </div>
 
       {/* Tabla interactiva (Client Component) */}
-      <LeadsTable leads={leads} />
+      <LeadsTable leads={leads} enrichments={enrichments} />
     </div>
   )
 }

@@ -11,6 +11,8 @@ import { ScoreTooltip } from '@/features/leads/components/ScoreTooltip'
 import { InlineNotesEditor } from '@/features/leads/components/InlineNotesEditor'
 import { LeadsFilterBar } from '@/features/leads/components/LeadsFilterBar'
 import type { StatusFilter, SortField } from '@/features/leads/components/LeadsFilterBar'
+import { PriorityBadge } from '@/features/intelligence/components/PriorityBadge'
+import type { LeadEnrichment } from '@/features/intelligence/types'
 
 const ALL_STATUSES: LeadStatus[] = [
   'applied',
@@ -21,9 +23,14 @@ const ALL_STATUSES: LeadStatus[] = [
 
 interface Props {
   leads: Lead[]
+  enrichments?: LeadEnrichment[]
 }
 
-export function LeadsTable({ leads: initialLeads }: Props) {
+export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
+  const enrichmentMap = useMemo(
+    () => new Map(enrichments.map((e) => [e.lead_id, e])),
+    [enrichments],
+  )
   const [leads, setLeads] = useState(initialLeads)
   const [invitingId, setInvitingId] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<{
@@ -204,6 +211,9 @@ export function LeadsTable({ leads: initialLeads }: Props) {
                     Score {sortField === 'score' ? '▼' : ''}
                   </button>
                 </th>
+                <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+                  Prioridad
+                </th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
                   Notas
                 </th>
@@ -240,6 +250,21 @@ export function LeadsTable({ leads: initialLeads }: Props) {
                     <ScoreTooltip breakdown={lead.scoreBreakdown}>
                       <ScoreBadge score={lead.scoreBreakdown.total} />
                     </ScoreTooltip>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {enrichmentMap.get(lead.id) ? (
+                      <div className="group relative inline-block">
+                        <PriorityBadge priority={enrichmentMap.get(lead.id)!.priority_label} />
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 w-48 rounded-lg border border-border bg-surface p-2 shadow-elevated text-xs text-left">
+                          <p className="font-medium text-foreground">{enrichmentMap.get(lead.id)!.recommended_action}</p>
+                          {enrichmentMap.get(lead.id)!.fit_reason && (
+                            <p className="text-foreground-muted mt-1">{enrichmentMap.get(lead.id)!.fit_reason}</p>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-foreground-muted">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <InlineNotesEditor
@@ -322,7 +347,7 @@ export function LeadsTable({ leads: initialLeads }: Props) {
               {filteredLeads.length === 0 && (
                 <tr>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     className="px-4 py-8 text-center text-foreground-muted"
                   >
                     {leads.length === 0

@@ -10,6 +10,7 @@ import { consumeInviteSchema } from '@/features/invites/types/schemas'
 import type { Invite } from '@/features/invites/types'
 import type { Lead } from '@/features/leads/types'
 import { track } from '@/lib/tracking'
+import { trackFriction } from '@/lib/friction'
 
 // ── Create Invite ────────────────────────────────────────────────────────────
 
@@ -177,10 +178,12 @@ export async function consumeInvite(
   const invite = inviteData as Invite
 
   if (invite.status !== 'pending') {
+    trackFriction({ leadId: invite.lead_id, stage: 'invite_consume', stepKey: 'already_used', frictionTag: 'invite_link_issue', severity: 'medium' })
     return { error: 'Esta invitación ya fue utilizada.', fieldErrors: {} }
   }
 
   if (new Date(invite.expires_at) < new Date()) {
+    trackFriction({ leadId: invite.lead_id, stage: 'invite_consume', stepKey: 'expired', frictionTag: 'invite_link_issue', severity: 'high' })
     return { error: 'Esta invitación ha expirado.', fieldErrors: {} }
   }
 
@@ -194,8 +197,10 @@ export async function consumeInvite(
 
   if (authError) {
     if (authError.message?.includes('already been registered')) {
+      trackFriction({ leadId: invite.lead_id, stage: 'invite_consume', stepKey: 'duplicate_email', frictionTag: 'invite_link_issue', severity: 'medium' })
       return { error: `Ya existe una cuenta con el email ${invite.email}.`, fieldErrors: {} }
     }
+    trackFriction({ leadId: invite.lead_id, stage: 'invite_consume', stepKey: 'auth_error', frictionTag: 'password_issue', severity: 'high', details: { msg: authError.message } })
     console.error('[consumeInvite] Auth error:', authError)
     return { error: `Error creando cuenta: ${authError.message}`, fieldErrors: {} }
   }

@@ -2,9 +2,11 @@ import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getPlantById } from '@/actions/plants'
 import { getReadings } from '@/actions/readings'
+import { hasFeedbackForContext } from '@/actions/feedback'
 import { ReadingList } from '@/features/readings/components'
 import { CleaningRecommendationCard } from '@/features/soiling/components'
 import { ChartsSection } from '@/features/soiling/components/ChartsSection'
+import { FeedbackWidget } from '@/features/intelligence/components/FeedbackWidget'
 import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import type { ProductionReading } from '@/features/readings/types'
@@ -38,6 +40,11 @@ export default async function PlantDetailPage({ params }: Props) {
   const typedReadings = readings as ProductionReading[]
   const latestReading = typedReadings.length > 0 ? typedReadings[0] : null
   const currencySymbol = getCurrencySymbol(typedPlant.currency)
+
+  // Show feedback widget after first reading if no feedback yet
+  const showFeedback = typedReadings.length > 0 && typedReadings.length <= 3
+    ? !(await hasFeedbackForContext(user.id, 'first_reading'))
+    : false
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -107,6 +114,15 @@ export default async function PlantDetailPage({ params }: Props) {
           <ReadingList readings={typedReadings} plantId={id} currencySymbol={currencySymbol} />
         </div>
       </Card>
+
+      {/* Feedback widget — shown after first readings */}
+      {showFeedback && (
+        <FeedbackWidget
+          context="first_reading"
+          question="Como fue tu experiencia registrando lecturas?"
+          pagePath={`/plants/${id}`}
+        />
+      )}
     </div>
   )
 }

@@ -8,7 +8,8 @@ import { getOrFetchIrradiance } from '@/features/irradiance/services/irradianceS
 import { processReading } from '@/features/soiling/services/readingPipeline'
 import type { Plant } from '@/features/plants/types'
 import type { ProductionReading } from '@/features/readings/types'
-import { track } from '@/lib/tracking'
+import { track, EVENTS } from '@/lib/tracking'
+import { trackFriction } from '@/lib/friction'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendSoilingAlertEmail } from '@/lib/email/resend'
 import { serverEnv } from '@/lib/env'
@@ -69,7 +70,18 @@ export async function createReading(formData: FormData) {
       supabase,
     })
 
-    track({ event: 'READING_CREATED', userId: user.id, metadata: { plantId: plant_id, soiling: result.soilingPercent } })
+    track({ event: EVENTS.READING_CREATED, userId: user.id, metadata: { plantId: plant_id, soiling: result.soilingPercent } })
+
+    // Track first reading for this plant
+    const { count: readingCount } = await supabase
+      .from('production_readings')
+      .select('*', { count: 'exact', head: true })
+      .eq('plant_id', plant_id)
+      .eq('user_id', user.id)
+
+    if (readingCount === 1) {
+      track({ event: EVENTS.FIRST_READING_COMPLETED, userId: user.id, metadata: { plantId: plant_id } })
+    }
 
     // Fire-and-forget: check soiling alerts (never blocks response)
     if (result.soilingPercent != null && result.recommendation !== 'OK') {
@@ -91,8 +103,24 @@ export async function createReading(formData: FormData) {
   } catch (err: unknown) {
     const pgError = err as { code?: string; message?: string }
     if (pgError.code === '23505') {
+      trackFriction({
+        userId: user.id,
+        stage: 'reading_creation',
+        stepKey: 'duplicate_date',
+        frictionTag: 'reading_source_unknown',
+        severity: 'low',
+        details: { plantId: plant_id, date: reading_date },
+      })
       return { error: 'Ya existe una lectura para esta planta en esa fecha' }
     }
+    trackFriction({
+      userId: user.id,
+      stage: 'reading_creation',
+      stepKey: 'insert_error',
+      frictionTag: 'unknown',
+      severity: 'high',
+      details: { plantId: plant_id, error: pgError.message },
+    })
     return { error: pgError.message ?? 'Error al crear lectura' }
   }
 }

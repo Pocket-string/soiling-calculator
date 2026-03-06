@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { checkTrialStatus, getProfile } from '@/lib/auth'
+import { track, EVENTS } from '@/lib/tracking'
 import { siteConfig } from '@/config/siteConfig'
 import { PlantForm } from '@/features/plants/components'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -12,6 +13,8 @@ export default async function NewPlantPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  track({ event: EVENTS.PLANT_CREATION_STARTED, userId: user.id })
 
   // Trial expirado → bloquear creación
   const { expired } = await checkTrialStatus()
