@@ -104,6 +104,84 @@ export async function createInvite(
   return { inviteUrl, emailSent, error: null }
 }
 
+// ── Re-Invite (for leads with status 'invited' whose invite expired/pending) ─
+
+export async function reinviteLead(
+  leadId: string,
+): Promise<{ inviteUrl: string | null; emailSent: boolean; error: string | null }> {
+  const admin = await requireAdmin()
+  const supabase = createServiceClient()
+
+  // 1. Fetch lead
+  const { data: lead, error: fetchError } = await supabase
+    .from('leads')
+    .select('*')
+    .eq('id', leadId)
+    .single()
+
+  if (fetchError || !lead) {
+    return { inviteUrl: null, emailSent: false, error: 'Lead no encontrado.' }
+  }
+
+  const typedLead = lead as Lead
+
+  if (typedLead.status !== 'invited') {
+    return { inviteUrl: null, emailSent: false, error: `Solo se puede re-invitar leads con status 'invited' (actual: ${typedLead.status}).` }
+  }
+
+  // 2. Expire all previous pending invites
+  await supabase
+    .from('invites')
+    .update({ status: 'expired' })
+    .eq('lead_id', leadId)
+    .eq('status', 'pending')
+
+  // 3. Create new invite
+  const { data: invite, error: insertError } = await supabase
+    .from('invites')
+    .insert({
+      lead_id: leadId,
+      email: typedLead.email,
+      name: typedLead.name,
+      access_level: 'founding',
+      max_plants: 1,
+      created_by: admin.id,
+    })
+    .select('*')
+    .single()
+
+  if (insertError || !invite) {
+    console.error('[reinviteLead] Insert error:', insertError)
+    return { inviteUrl: null, emailSent: false, error: `Error creando invitacion: ${insertError?.message}` }
+  }
+
+  const typedInvite = invite as Invite
+
+  // 4. Build URL & send email
+  const baseUrl = serverEnv.NEXT_PUBLIC_SITE_URL
+  const inviteUrl = `${baseUrl}/invite/${typedInvite.token}`
+
+  let emailSent = false
+  const emailResult = await sendInviteLinkEmail({
+    to: typedLead.email,
+    name: typedLead.name,
+    inviteUrl,
+  })
+
+  if (!emailResult.error) {
+    emailSent = true
+  } else {
+    console.warn('[reinviteLead] Email error (no bloqueante):', emailResult.error)
+  }
+
+  // 5. Track
+  track({ event: 'LEAD_INVITED', userId: admin.id, leadId, metadata: { email: typedLead.email, reinvite: true } })
+
+  revalidatePath('/panel/leads')
+
+  return { inviteUrl, emailSent, error: null }
+}
+
 // ── Get Invite by Token ──────────────────────────────────────────────────────
 
 export async function getInviteByToken(

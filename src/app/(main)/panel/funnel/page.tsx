@@ -13,6 +13,8 @@ const FUNNEL_EVENTS = [
   { key: 'INVITE_CONSUMED', label: 'Activados', color: 'bg-success-500' },
   { key: 'PLANT_CREATED', label: 'Plantas', color: 'bg-violet-500' },
   { key: 'READING_CREATED', label: 'Lecturas', color: 'bg-rose-500' },
+  { key: 'USER_LOGIN', label: 'Logins', color: 'bg-teal-500' },
+  { key: 'REENGAGEMENT_SENT', label: 'Re-engagement', color: 'bg-orange-500' },
 ] as const
 
 interface EventCount {

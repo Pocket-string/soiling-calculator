@@ -58,6 +58,13 @@ export function OnboardingBanner({ questions, initialStep = 0 }: Props) {
             </span>
           </div>
 
+          {/* Headline */}
+          {step === 0 && (
+            <p className="text-xs text-primary-600 font-semibold mb-1">
+              Personaliza tu experiencia (30 seg)
+            </p>
+          )}
+
           {/* Question */}
           <p className="text-sm font-medium text-foreground mb-3">
             {current.question}
@@ -85,7 +92,7 @@ export function OnboardingBanner({ questions, initialStep = 0 }: Props) {
           className="text-xs text-foreground-muted hover:text-foreground-secondary transition-colors flex-shrink-0"
           title="Omitir"
         >
-          Omitir
+          Mas tarde
         </button>
       </div>
     </div>

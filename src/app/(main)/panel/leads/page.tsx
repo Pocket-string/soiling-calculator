@@ -4,6 +4,7 @@ import { getLeadEnrichments } from '@/actions/intelligence'
 import { calculateLeadScore } from '@/features/leads/services/leadScorer'
 import { KpiCard } from '@/components/ui/kpi-card'
 import { LeadsTable } from './LeadsTable'
+import { TriageAllButton } from './TriageAllButton'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Leads | Admin — Soiling Calc' }
@@ -49,12 +50,15 @@ export default async function AdminLeadsPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Gestion de leads</h1>
-        <p className="text-sm text-foreground-secondary mt-0.5">
-          {stats.total} postulaciones · {stats.invited + stats.active} plazas
-          activas / 10 maximo
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Gestion de leads</h1>
+          <p className="text-sm text-foreground-secondary mt-0.5">
+            {stats.total} postulaciones · {stats.invited + stats.active} plazas
+            activas / 10 maximo
+          </p>
+        </div>
+        <TriageAllButton />
       </div>
 
       {/* Stats */}

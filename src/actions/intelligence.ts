@@ -84,6 +84,29 @@ export async function triageLeadAction(leadId: string): Promise<{ error?: string
   }
 }
 
+/** Bulk triage all leads (admin only). Re-runs triage for every lead and upserts enrichment. */
+export async function triageAllLeadsAction(): Promise<{ processed: number; errors: string[] }> {
+  await requireAdmin()
+  const supabase = createServiceClient()
+
+  const { data: leads, error } = await supabase.from('leads').select('*')
+  if (error || !leads) return { processed: 0, errors: [error?.message ?? 'No leads found'] }
+
+  const errors: string[] = []
+  let processed = 0
+
+  for (const lead of leads) {
+    const result = await triageLeadAction(lead.id)
+    if (result.error) {
+      errors.push(`${lead.name}: ${result.error}`)
+    } else {
+      processed++
+    }
+  }
+
+  return { processed, errors }
+}
+
 /** Get all lead enrichments (admin only, for leads table). */
 export async function getLeadEnrichments(): Promise<LeadEnrichment[]> {
   await requireAdmin()

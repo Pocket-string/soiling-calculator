@@ -67,7 +67,7 @@ export async function createLead(
   // Fire-and-forget: triage lead enrichment
   if (upsertedLead?.id) {
     import('@/actions/intelligence').then(({ triageLeadAction }) =>
-      triageLeadAction(upsertedLead.id).catch(() => {})
+      triageLeadAction(upsertedLead.id).catch((e) => console.error('[triage] Silent failure:', e))
     )
   }
 

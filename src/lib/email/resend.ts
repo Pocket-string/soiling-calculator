@@ -123,6 +123,108 @@ export async function sendInviteLinkEmail(
   }
 }
 
+// ─── Re-engagement Email ─────────────────────────────────────────────────────
+
+export type ReengagementVariant = 'no_plant' | 'no_readings' | 'inactive'
+
+interface ReengagementEmailParams {
+  to: string
+  name: string
+  variant: ReengagementVariant
+  /** Only needed for 'no_readings' variant */
+  plantName?: string
+  plantUrl?: string
+  siteUrl: string
+}
+
+const REENGAGEMENT_SUBJECTS: Record<ReengagementVariant, string> = {
+  no_plant: 'Tu planta solar espera ser configurada',
+  no_readings: 'Registra tu primera lectura',
+  inactive: 'Tus datos de irradiancia se actualizan a diario',
+}
+
+function buildReengagementBody(params: ReengagementEmailParams): string {
+  const { name, variant, plantName, plantUrl, siteUrl } = params
+  const plantsUrl = `${siteUrl}/plants`
+
+  const bodies: Record<ReengagementVariant, string[]> = {
+    no_plant: [
+      `Hola ${name},`,
+      ``,
+      `Creaste tu cuenta en Soiling Calc pero aun no has configurado tu primera planta.`,
+      ``,
+      `Solo toma 2 minutos:`,
+      `1. Ingresa los datos basicos de tu instalacion (kWp, ubicacion)`,
+      `2. Registra una lectura de produccion`,
+      `3. La app calcula automaticamente el soiling y el momento optimo de limpieza`,
+      ``,
+      `Configura tu planta ahora:`,
+      `   ${plantsUrl}`,
+      ``,
+      `Si tienes dudas sobre que datos necesitas, responde a este email.`,
+      ``,
+      `-- Equipo Soiling Calc`,
+    ],
+    no_readings: [
+      `Hola ${name},`,
+      ``,
+      `Tu planta "${plantName ?? 'tu instalacion'}" esta lista pero aun no tiene lecturas registradas.`,
+      ``,
+      `Para que la calculadora de soiling funcione, necesita al menos una lectura de produccion (kWh del dia).`,
+      ``,
+      `Registra tu primera lectura ahora:`,
+      `   ${plantUrl ?? plantsUrl}`,
+      ``,
+      `Los datos que necesitas:`,
+      `- Produccion del dia (kWh) — lo encuentras en tu inversor o plataforma de monitoreo`,
+      `- Fecha de la lectura`,
+      ``,
+      `Si no sabes donde encontrar estos datos, respondenos y te ayudamos.`,
+      ``,
+      `-- Equipo Soiling Calc`,
+    ],
+    inactive: [
+      `Hola ${name},`,
+      ``,
+      `Hace tiempo que no entras a Soiling Calc.`,
+      ``,
+      `Mientras tanto, los datos de irradiancia de tu zona se actualizan automaticamente cada dia. Cuantas mas lecturas registres, mas preciso sera el calculo de soiling de tu planta.`,
+      ``,
+      `Vuelve a revisar tu instalacion:`,
+      `   ${plantsUrl}`,
+      ``,
+      `Recuerda: tu periodo de prueba sigue corriendo. Aprovechalo para evaluar si la herramienta te es util.`,
+      ``,
+      `Si necesitas ayuda o tienes feedback, respondenos.`,
+      ``,
+      `-- Equipo Soiling Calc`,
+    ],
+  }
+
+  return bodies[variant].join('\n')
+}
+
+export async function sendReengagementEmail(
+  params: ReengagementEmailParams,
+): Promise<{ error: string | null }> {
+  try {
+    const resend = getResend()
+
+    await resend.emails.send({
+      from: EMAIL_CONFIG.from,
+      to: params.to,
+      replyTo: EMAIL_CONFIG.replyTo,
+      subject: REENGAGEMENT_SUBJECTS[params.variant],
+      text: buildReengagementBody(params),
+    })
+
+    return { error: null }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Error desconocido'
+    return { error: message }
+  }
+}
+
 // ─── Soiling Alert Email ──────────────────────────────────────────────────────
 
 const RECOMMENDATION_LABELS: Record<string, string> = {

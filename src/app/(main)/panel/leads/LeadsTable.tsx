@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useTransition } from 'react'
-import { createInvite } from '@/actions/invites'
+import { createInvite, reinviteLead } from '@/actions/invites'
 import { updateLeadStatus } from '@/actions/leads'
 import { LEAD_STATUS_LABELS, LEAD_STATUS_COLORS } from '@/features/leads/types'
 import type { Lead, LeadStatus } from '@/features/leads/types'
@@ -128,6 +128,36 @@ export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
           l.id === lead.id ? { ...l, status: 'invited' as LeadStatus } : l,
         ),
       )
+    }
+  }
+
+  async function handleReinvite(lead: Lead) {
+    const confirmed = window.confirm(
+      `Re-invitar a ${lead.name} (${lead.email})?\n\nSe creara una nueva invitacion y recibira un email.`,
+    )
+    if (!confirmed) return
+
+    setInvitingId(lead.id)
+    setFeedback(null)
+
+    const result = await reinviteLead(lead.id)
+
+    setInvitingId(null)
+
+    if (result.error) {
+      setFeedback({ id: lead.id, type: 'error', msg: result.error })
+    } else {
+      if (result.inviteUrl) {
+        try { await navigator.clipboard.writeText(result.inviteUrl) } catch { /* noop */ }
+      }
+      const emailMsg = result.emailSent
+        ? 'Email enviado'
+        : 'Email no enviado (sin configurar Resend)'
+      setFeedback({
+        id: lead.id,
+        type: 'success',
+        msg: `Re-invitacion creada. ${emailMsg}. URL copiada al portapapeles.`,
+      })
     }
   }
 
@@ -325,9 +355,20 @@ export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
                           </select>
                         )}
                       {lead.status === 'invited' && (
-                        <span className="text-xs text-blue-600 font-medium">
-                          Invitado
-                        </span>
+                        <button
+                          onClick={() => handleReinvite(lead)}
+                          disabled={invitingId === lead.id}
+                          className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          {invitingId === lead.id ? (
+                            <span className="flex items-center gap-1.5">
+                              <Spinner />
+                              Re-invitando...
+                            </span>
+                          ) : (
+                            'Re-invitar'
+                          )}
+                        </button>
                       )}
                       {lead.status === 'active' && (
                         <span className="text-xs text-success-600 font-medium">
