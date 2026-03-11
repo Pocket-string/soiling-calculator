@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth'
 import { serverEnv } from '@/lib/env'
-import { sendInviteLinkEmail } from '@/lib/email/resend'
+import { sendInviteLinkEmail, sendReinviteLinkEmail } from '@/lib/email/resend'
 import { consumeInviteSchema } from '@/features/invites/types/schemas'
 import type { Invite } from '@/features/invites/types'
 import type { Lead } from '@/features/leads/types'
@@ -162,10 +162,12 @@ export async function reinviteLead(
   const inviteUrl = `${baseUrl}/invite/${typedInvite.token}`
 
   let emailSent = false
-  const emailResult = await sendInviteLinkEmail({
+  const emailResult = await sendReinviteLinkEmail({
     to: typedLead.email,
     name: typedLead.name,
     inviteUrl,
+    systemKwp: typedLead.system_kwp,
+    inverterBrand: typedLead.inverter_brand,
   })
 
   if (!emailResult.error) {

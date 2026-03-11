@@ -123,6 +123,56 @@ export async function sendInviteLinkEmail(
   }
 }
 
+// ─── Re-Invite Link Email ────────────────────────────────────────────────────
+
+interface ReinviteLinkEmailParams {
+  to: string
+  name: string
+  inviteUrl: string
+  systemKwp?: number | null
+  inverterBrand?: string | null
+}
+
+export async function sendReinviteLinkEmail(
+  params: ReinviteLinkEmailParams,
+): Promise<{ error: string | null }> {
+  try {
+    const resend = getResend()
+
+    const systemLine = params.systemKwp
+      ? `Con tu sistema de ${params.systemKwp} kWp${params.inverterBrand ? ` con inversor ${params.inverterBrand}` : ''}, la calculadora de soiling te indica exactamente cuando limpiar tus paneles para maximizar produccion.`
+      : 'La calculadora de soiling te indica exactamente cuando limpiar tus paneles para maximizar produccion.'
+
+    await resend.emails.send({
+      from: EMAIL_CONFIG.from,
+      to: params.to,
+      replyTo: EMAIL_CONFIG.replyTo,
+      subject: `${params.name}, tu nueva invitacion a Soiling Calc`,
+      text: [
+        `Hola ${params.name},`,
+        ``,
+        `Te enviamos una nueva invitacion a Soiling Calc. Tu enlace anterior expiro, pero aqui tienes uno nuevo valido por 7 dias.`,
+        ``,
+        `Activa tu cuenta aqui (solo elige una contrasena):`,
+        `   ${params.inviteUrl}`,
+        ``,
+        systemLine,
+        ``,
+        `Crear tu cuenta toma menos de 1 minuto.`,
+        ``,
+        `Si tienes dudas, responde a este email.`,
+        ``,
+        `-- Equipo Soiling Calc`,
+      ].join('\n'),
+    })
+
+    return { error: null }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Error desconocido'
+    return { error: message }
+  }
+}
+
 // ─── Re-engagement Email ─────────────────────────────────────────────────────
 
 export type ReengagementVariant = 'no_plant' | 'no_readings' | 'inactive'
