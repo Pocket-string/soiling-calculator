@@ -54,7 +54,7 @@ export function ActivationProgress({ onboardingCompleted, plantCount, readingCou
                 )}
               </div>
               {/* Label */}
-              <span className={`text-[10px] text-center leading-tight ${done ? 'text-success-600 font-medium' : 'text-foreground-muted'}`}>
+              <span className={`text-[10px] sm:text-xs text-center leading-tight ${done ? 'text-success-600 font-medium' : 'text-foreground-muted'}`}>
                 {milestone.label}
               </span>
             </div>

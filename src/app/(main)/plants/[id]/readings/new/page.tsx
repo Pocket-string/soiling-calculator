@@ -30,7 +30,7 @@ export default async function NewReadingPage({ params }: Props) {
   const { expired } = await checkTrialStatus()
   if (expired) {
     return (
-      <div className="p-6 max-w-xl mx-auto">
+      <div className="p-4 md:p-6 max-w-xl mx-auto">
         <div className="mb-6">
           <Link href={`/plants/${id}`} className="text-sm text-blue-600 hover:underline">
             ← Volver a {plant.name}
@@ -58,7 +58,7 @@ export default async function NewReadingPage({ params }: Props) {
   }
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
+    <div className="p-4 md:p-6 max-w-xl mx-auto">
       <div className="mb-6">
         <Link href={`/plants/${id}`} className="text-sm text-blue-600 hover:underline">
           ← Volver a {plant.name}

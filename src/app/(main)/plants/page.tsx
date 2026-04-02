@@ -74,7 +74,7 @@ export default async function PlantsPage() {
   // Empty state: no plants
   if (plants.length === 0) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-4 md:p-6 max-w-7xl mx-auto">
         <EmptyPlantState
           systemKwp={leadData?.systemKwp}
           inverterBrand={leadData?.inverterBrand}
@@ -85,7 +85,7 @@ export default async function PlantsPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto">
       {/* Activation progress (disappears when fully activated) */}
       <ActivationProgress
         onboardingCompleted={!!onboarding?.completed_at}

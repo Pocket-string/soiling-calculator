@@ -221,13 +221,13 @@ export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
                   Nombre / Email
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden md:table-cell">
                   Ubicación
                 </th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+                <th className="text-right px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden lg:table-cell">
                   kWp
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden lg:table-cell">
                   Inversor
                 </th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
@@ -241,10 +241,10 @@ export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
                     Score {sortField === 'score' ? '▼' : ''}
                   </button>
                 </th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+                <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden md:table-cell">
                   Prioridad
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden lg:table-cell">
                   Notas
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
@@ -253,7 +253,7 @@ export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
                   Acciones
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+                <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden md:table-cell">
                   Fecha
                 </th>
               </tr>
@@ -261,19 +261,19 @@ export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
             <tbody className="divide-y divide-border-light">
               {filteredLeads.map((lead) => (
                 <tr key={lead.id} className="hover:bg-surface-alt">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-foreground">{lead.name}</p>
-                    <p className="text-xs text-foreground-muted">{lead.email}</p>
+                  <td className="px-4 py-3 max-w-[180px] md:max-w-none">
+                    <p className="font-medium text-foreground truncate">{lead.name}</p>
+                    <p className="text-xs text-foreground-muted truncate">{lead.email}</p>
                   </td>
-                  <td className="px-4 py-3 text-foreground-secondary">
+                  <td className="px-4 py-3 text-foreground-secondary hidden md:table-cell">
                     {lead.location_city && lead.location_country
                       ? `${lead.location_city}, ${lead.location_country}`
                       : lead.location_country ?? '—'}
                   </td>
-                  <td className="px-4 py-3 text-right text-foreground-secondary font-mono">
+                  <td className="px-4 py-3 text-right text-foreground-secondary font-mono hidden lg:table-cell">
                     {lead.system_kwp ?? '—'}
                   </td>
-                  <td className="px-4 py-3 text-foreground-secondary">
+                  <td className="px-4 py-3 text-foreground-secondary hidden lg:table-cell">
                     {lead.inverter_brand ?? '—'}
                   </td>
                   <td className="px-4 py-3 text-center">
@@ -281,22 +281,24 @@ export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
                       <ScoreBadge score={lead.scoreBreakdown.total} />
                     </ScoreTooltip>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center hidden md:table-cell">
                     {enrichmentMap.get(lead.id) ? (
-                      <div className="group relative inline-block">
-                        <PriorityBadge priority={enrichmentMap.get(lead.id)!.priority_label} />
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10 w-48 rounded-lg border border-border bg-surface p-2 shadow-elevated text-xs text-left">
+                      <details className="relative inline-block">
+                        <summary className="list-none cursor-pointer">
+                          <PriorityBadge priority={enrichmentMap.get(lead.id)!.priority_label} />
+                        </summary>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10 w-48 rounded-lg border border-border bg-surface p-2 shadow-elevated text-xs text-left">
                           <p className="font-medium text-foreground">{enrichmentMap.get(lead.id)!.recommended_action}</p>
                           {enrichmentMap.get(lead.id)!.fit_reason && (
                             <p className="text-foreground-muted mt-1">{enrichmentMap.get(lead.id)!.fit_reason}</p>
                           )}
                         </div>
-                      </div>
+                      </details>
                     ) : (
                       <span className="text-xs text-foreground-muted">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 hidden lg:table-cell">
                     <InlineNotesEditor
                       leadId={lead.id}
                       initialNotes={lead.notes}
@@ -322,7 +324,7 @@ export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
                         <button
                           onClick={() => handleInvite(lead)}
                           disabled={invitingId === lead.id}
-                          className="px-3 py-1.5 rounded-lg bg-success-600 text-white text-xs font-semibold hover:bg-success-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                          className="px-3 py-2 rounded-lg bg-success-600 text-white text-xs font-semibold hover:bg-success-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] min-w-[44px]"
                         >
                           {invitingId === lead.id ? (
                             <span className="flex items-center gap-1.5">
@@ -345,7 +347,7 @@ export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
                               )
                             }
                             disabled={isPending}
-                            className="text-xs border border-border rounded px-1.5 py-1 bg-surface focus:outline-none focus:ring-1 focus:ring-accent-500 disabled:opacity-50"
+                            className="text-xs border border-border rounded px-2 py-2 bg-surface focus:outline-none focus:ring-1 focus:ring-accent-500 disabled:opacity-50 min-h-[44px]"
                           >
                             {ALL_STATUSES.map((s) => (
                               <option key={s} value={s}>
@@ -358,7 +360,7 @@ export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
                         <button
                           onClick={() => handleReinvite(lead)}
                           disabled={invitingId === lead.id}
-                          className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                          className="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] min-w-[44px]"
                         >
                           {invitingId === lead.id ? (
                             <span className="flex items-center gap-1.5">
@@ -377,7 +379,7 @@ export function LeadsTable({ leads: initialLeads, enrichments = [] }: Props) {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-foreground-muted text-xs whitespace-nowrap">
+                  <td className="px-4 py-3 text-foreground-muted text-xs whitespace-nowrap hidden md:table-cell">
                     {new Date(lead.created_at).toLocaleDateString('es-ES', {
                       day: 'numeric',
                       month: 'short',

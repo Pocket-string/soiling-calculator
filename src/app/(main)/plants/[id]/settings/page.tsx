@@ -30,7 +30,7 @@ export default async function PlantSettingsPage({ params }: Props) {
   if (!plant || error) notFound()
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto">
       <div className="mb-6">
         <Link href={`/plants/${id}`} className="text-sm text-blue-600 hover:underline">
           &larr; Volver a {plant.name}

@@ -33,7 +33,7 @@ export function EmptyPlantState({ systemKwp, inverterBrand, trialExpired }: Prop
       )}
 
       {/* Steps */}
-      <div className="flex items-center gap-3 mb-8 text-sm text-foreground-secondary">
+      <div className="flex items-center gap-2 sm:gap-3 mb-8 text-xs sm:text-sm text-foreground-secondary">
         <div className="flex items-center gap-1.5">
           <span className="w-6 h-6 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold">1</span>
           <span>Datos basicos</span>

@@ -27,13 +27,13 @@ export function DemoReadingTable({ readings }: Props) {
               <th className="text-right px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
                 kWh real
               </th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+              <th className="text-right px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden sm:table-cell">
                 kWh teórico
               </th>
               <th className="text-right px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
                 Soiling
               </th>
-              <th className="text-right px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+              <th className="text-right px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden sm:table-cell">
                 PR
               </th>
               <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
@@ -63,7 +63,7 @@ export function DemoReadingTable({ readings }: Props) {
                   <td className="px-4 py-3 text-right text-foreground-secondary font-mono">
                     {r.kwh_real.toFixed(1)}
                   </td>
-                  <td className="px-4 py-3 text-right text-foreground-muted font-mono">
+                  <td className="px-4 py-3 text-right text-foreground-muted font-mono hidden sm:table-cell">
                     {r.kwh_theoretical !== null ? r.kwh_theoretical.toFixed(1) : '—'}
                   </td>
                   <td className="px-4 py-3 text-right font-mono font-semibold">
@@ -77,7 +77,7 @@ export function DemoReadingTable({ readings }: Props) {
                       '—'
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right text-foreground-secondary font-mono">
+                  <td className="px-4 py-3 text-right text-foreground-secondary font-mono hidden sm:table-cell">
                     {r.pr_current !== null ? `${(r.pr_current * 100).toFixed(1)}%` : '—'}
                   </td>
                   <td className="px-4 py-3">

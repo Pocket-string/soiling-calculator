@@ -28,11 +28,11 @@ export function ReadingList({ readings, plantId, currencySymbol = '€' }: Props
           <tr className="border-b border-border text-xs text-foreground-muted uppercase tracking-wide">
             <th className="pb-2 text-left font-medium">Fecha</th>
             <th className="pb-2 text-right font-medium">kWh real</th>
-            <th className="pb-2 text-right font-medium">kWh teórico</th>
-            <th className="pb-2 text-right font-medium">PR</th>
+            <th className="pb-2 text-right font-medium hidden md:table-cell">kWh teórico</th>
+            <th className="pb-2 text-right font-medium hidden sm:table-cell">PR</th>
             <th className="pb-2 text-right font-medium">Soiling</th>
-            <th className="pb-2 text-right font-medium">Perdida ({currencySymbol})</th>
-            <th className="pb-2 text-right font-medium">Acum. ({currencySymbol})</th>
+            <th className="pb-2 text-right font-medium hidden sm:table-cell">Perdida ({currencySymbol})</th>
+            <th className="pb-2 text-right font-medium hidden md:table-cell">Acum. ({currencySymbol})</th>
             <th className="pb-2 text-center font-medium">Estado</th>
             <th className="pb-2 text-center font-medium w-10"></th>
           </tr>
@@ -56,19 +56,19 @@ export function ReadingList({ readings, plantId, currencySymbol = '€' }: Props
                 <td className="py-2.5 pr-4 text-right font-mono">
                   {r.kwh_real?.toFixed(1)}
                 </td>
-                <td className="py-2.5 pr-4 text-right font-mono text-foreground-muted">
+                <td className="py-2.5 pr-4 text-right font-mono text-foreground-muted hidden md:table-cell">
                   {r.kwh_theoretical?.toFixed(1) ?? '—'}
                 </td>
-                <td className="py-2.5 pr-4 text-right font-mono">
+                <td className="py-2.5 pr-4 text-right font-mono hidden sm:table-cell">
                   {r.pr_current !== null ? `${(r.pr_current * 100).toFixed(1)}%` : '—'}
                 </td>
                 <td className={`py-2.5 pr-4 text-right font-mono font-medium ${(r.soiling_percent ?? 0) > 7 ? 'text-error-600' : (r.soiling_percent ?? 0) > 3 ? 'text-warning-600' : 'text-foreground-secondary'}`}>
                   {r.soiling_percent !== null ? `${r.soiling_percent.toFixed(1)}%` : '—'}
                 </td>
-                <td className="py-2.5 pr-4 text-right font-mono text-error-600">
+                <td className="py-2.5 pr-4 text-right font-mono text-error-600 hidden sm:table-cell">
                   {r.loss_eur !== null ? `${r.loss_eur.toFixed(2)}${currencySymbol}` : '—'}
                 </td>
-                <td className="py-2.5 pr-4 text-right font-mono">
+                <td className="py-2.5 pr-4 text-right font-mono hidden md:table-cell">
                   {r.cumulative_loss_eur !== null ? `${r.cumulative_loss_eur.toFixed(2)}${currencySymbol}` : '—'}
                 </td>
                 <td className="py-2.5 text-center">

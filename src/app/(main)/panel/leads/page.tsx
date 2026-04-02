@@ -49,10 +49,10 @@ export default async function AdminLeadsPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Gestion de leads</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">Gestion de leads</h1>
           <p className="text-sm text-foreground-secondary mt-0.5">
             {stats.total} postulaciones · {stats.invited + stats.active} plazas
             activas / 10 maximo

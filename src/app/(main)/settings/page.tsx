@@ -35,7 +35,7 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Configuración</h1>
         <p className="text-foreground-secondary text-sm mt-1">Gestiona tu cuenta y preferencias</p>
@@ -53,21 +53,21 @@ export default async function SettingsPage() {
 
           {/* Readonly fields */}
           <div className="border-t border-border-light pt-4 space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
               <span className="text-sm text-foreground-secondary">Email</span>
-              <span className="text-sm font-medium text-foreground">{user.email}</span>
+              <span className="text-sm font-medium text-foreground truncate">{user.email}</span>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
               <span className="text-sm text-foreground-secondary">Plan</span>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${levelInfo.color}`}>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full w-fit ${levelInfo.color}`}>
                 {levelInfo.label}
               </span>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
               <span className="text-sm text-foreground-secondary">Trial</span>
               <span className="text-sm text-foreground">{trialInfo}</span>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
               <span className="text-sm text-foreground-secondary">Plantas permitidas</span>
               <span className="text-sm font-medium text-foreground">{profile?.max_plants ?? 1}</span>
             </div>

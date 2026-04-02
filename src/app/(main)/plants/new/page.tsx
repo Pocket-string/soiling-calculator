@@ -20,7 +20,7 @@ export default async function NewPlantPage() {
   const { expired } = await checkTrialStatus()
   if (expired) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
+      <div className="p-4 md:p-6 max-w-2xl mx-auto">
         <div className="mb-6">
           <Link href="/plants" className="text-sm text-blue-600 hover:underline">
             &larr; Volver a plantas
@@ -66,7 +66,7 @@ export default async function NewPlantPage() {
 
   if ((count ?? 0) >= maxPlants) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
+      <div className="p-4 md:p-6 max-w-2xl mx-auto">
         <div className="mb-6">
           <Link href="/plants" className="text-sm text-blue-600 hover:underline">
             &larr; Volver a plantas
@@ -104,7 +104,7 @@ export default async function NewPlantPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto">
       <div className="mb-6">
         <Link href="/plants" className="text-sm text-blue-600 hover:underline">
           &larr; Volver a plantas

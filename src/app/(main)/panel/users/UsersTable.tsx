@@ -85,12 +85,12 @@ export function UsersTable({ users }: Props) {
   return (
     <div className="space-y-4">
       {/* Actions bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <p className="text-sm text-foreground-secondary">{users.length} usuarios founding</p>
         <button
           onClick={handleBulkReengagement}
           disabled={bulkLoading}
-          className="px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-semibold hover:bg-accent-700 transition-colors disabled:opacity-60"
+          className="px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-semibold hover:bg-accent-700 transition-colors disabled:opacity-60 w-full sm:w-auto"
         >
           {bulkLoading ? 'Enviando...' : 'Re-engagement masivo'}
         </button>
@@ -124,16 +124,16 @@ export function UsersTable({ users }: Props) {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
                   Ultimo login
                 </th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+                <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden md:table-cell">
                   Plantas
                 </th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+                <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden md:table-cell">
                   Lecturas
                 </th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+                <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden lg:table-cell">
                   Trial
                 </th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
+                <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider hidden lg:table-cell">
                   Sistema
                 </th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-foreground-muted uppercase tracking-wider">
@@ -149,23 +149,23 @@ export function UsersTable({ users }: Props) {
                 const statusCfg = STATUS_CONFIG[user.engagementStatus]
                 return (
                   <tr key={user.userId} className="hover:bg-surface-alt">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-foreground">{user.fullName ?? '—'}</p>
-                      <p className="text-xs text-foreground-muted">{user.email}</p>
+                    <td className="px-4 py-3 max-w-[180px] md:max-w-none">
+                      <p className="font-medium text-foreground truncate">{user.fullName ?? '—'}</p>
+                      <p className="text-xs text-foreground-muted truncate">{user.email}</p>
                     </td>
                     <td className="px-4 py-3 text-foreground-secondary text-xs">
                       {relativeTime(user.lastSignInAt)}
                     </td>
-                    <td className="px-4 py-3 text-center font-mono">
+                    <td className="px-4 py-3 text-center font-mono hidden md:table-cell">
                       {user.plantCount}
                     </td>
-                    <td className="px-4 py-3 text-center font-mono">
+                    <td className="px-4 py-3 text-center font-mono hidden md:table-cell">
                       {user.readingCount}
                     </td>
-                    <td className={`px-4 py-3 text-center text-xs ${trialBadgeColor(user.trialDaysLeft)}`}>
+                    <td className={`px-4 py-3 text-center text-xs hidden lg:table-cell ${trialBadgeColor(user.trialDaysLeft)}`}>
                       {user.trialDaysLeft !== null ? `${user.trialDaysLeft}d` : '—'}
                     </td>
-                    <td className="px-4 py-3 text-center text-xs text-foreground-secondary">
+                    <td className="px-4 py-3 text-center text-xs text-foreground-secondary hidden lg:table-cell">
                       {user.systemKwp ? `${user.systemKwp} kWp` : '—'}
                       {user.inverterBrand && (
                         <span className="block text-foreground-muted">{user.inverterBrand}</span>
@@ -181,7 +181,7 @@ export function UsersTable({ users }: Props) {
                         <button
                           onClick={() => handleNudge(user)}
                           disabled={sendingId === user.userId}
-                          className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60"
+                          className="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60 min-h-[44px]"
                         >
                           {sendingId === user.userId ? 'Enviando...' : `Nudge: ${VARIANT_LABELS[suggestedVariant(user)]}`}
                         </button>
